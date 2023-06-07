@@ -1,24 +1,31 @@
 const APIURL = "https://api.github.com/users/";
-const form = document.getElementById('form');
-const search = document.getElementById('search');
-const main = document.getElementById('main')
-
-
+const form = document.getElementById("form");
+const search = document.getElementById("search");
+const main = document.getElementById("main");
 
 async function getUser(username) {
   try {
     const { data } = await axios(APIURL + username);
-    console.log(data)
-   createUserCard(data)
+    console.log(data);
+    createUserCard(data);
   } catch (err) {
-     if(err.response.status == 404) {
-    createErrorCard('No profile with that username')
+    if (err.response.status == 404) {
+      createErrorCard("No profile with that username");
     }
   }
-};
+}
+
+async function getRepos(username) {
+  try {
+    const { data } = await axios(APIURL + username + '/repos');
+    addReposToCard(data);
+  } catch (err) {
+    createErrorCard("Problem fetching repos");
+  }
+}
 
 function createUserCard(user) {
-    const cardHTML = `     
+  const cardHTML = `     
     <div class="card">
     <div>
       <img
@@ -28,8 +35,8 @@ function createUserCard(user) {
       />
     </div>
     <div class="user-info">
-      <h2>${user.name}</h2>
-      <h3>${user.login}</h3>
+      <h2>${user.login}</h2>
+      <h3>${user.name}</h3>
       <p>
        ${user.bio}
       </p>
@@ -45,28 +52,43 @@ function createUserCard(user) {
       </div>
     </div>
   </div>
-  `
+  `;
 
-  main.innerHTML = cardHTML
+  main.innerHTML = cardHTML;
 }
 
 function createErrorCard(msg) {
-    const cardHTML = `
+  const cardHTML = `
     <div class = "card">
     <h1>${msg}</h1>
-    </div>`
+    </div>`;
 
-    main.innerHTML = cardHTML
+  main.innerHTML = cardHTML;
 }
 
-form.addEventListener('submit', (e) => {
-    e.preventDefault()
+function addReposToCard(repos) {
+  const reposEl = document.getElementById('repos');
 
-    const user = search.value;
+  repos.forEach(repo => {
+    const repoEl = document.createElement('a')
+    repoEl.classList.add('repo')
+    repoEl.href= repo.html_url;
+    repoEl.target = '_blank';
+    repoEl.innerText = repo.name;
 
-    if(user) {
-        getUser(user)
+    reposEl.appendChild(repoEl)
 
-        search.value = ""
-    }
-})
+  })
+}
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const user = search.value;
+
+  if (user) {
+    getUser(user);
+
+    search.value = "";
+  }
+});
